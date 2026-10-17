@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.0)
 
-project(MyProject
+project(ReceiptLedger
     VERSION 0.1.0
     LANGUAGES C CXX
 )
@@ -37,27 +37,7 @@ cppcmake_test_setup()
 # Dependencies
 # =========================================================
 
-#
-# Load optional machine-local package configuration.
-#
-# CPPCMAKE_DEPENDENCY_LOCAL_PACKAGE_FILE may point to a local
-# CMake file that configures prebuilt packages, package search
-# paths, or machine-specific dependency helpers.
-#
-# When unset or unavailable, dependency resolution continues
-# normally.
-#
-
 cppcmake_dependency_try_local_packages()
-
-#
-# Initialize dependency submodules that are not already
-# provided by a parent project.
-#
-# PATH entries without TARGET are always initialized.
-# PATH entries with TARGET are skipped when that CMake target
-# already exists.
-#
 
 cppcmake_gitsubmodule_init_missing_targets(
     WORKING_DIRECTORY
@@ -65,50 +45,36 @@ cppcmake_gitsubmodule_init_missing_targets(
 
     PATH
         "extern/CppDependencies"
-
-    PATH
-        "extern/MyLibrary"
-    TARGET
-        "MyLibrary_core"
 )
 
-#
-# Add dependency subdirectories only when their target is not
-# already available from a parent project.
-#
+include(extern/CppDependencies/CppDependencies.cmake)
 
-cppcmake_dependency_add_subdirectory_unless_target(
-    MyLibrary_core
-    extern/MyLibrary
+include(GNUInstallDirs)
+
+cppdependencies_zlib(ZLIB SHARED)
+cppdependencies_png(PNG SHARED)
+cppdependencies_jpeg(JPEG SHARED)
+cppdependencies_tiff(TIFF SHARED)
+cppdependencies_leptonica(LEPTONICA SHARED)
+cppdependencies_tesseract(TESSERACT SHARED
+    TESSDATA_DIR RECEIPTLEDGER_TESSDATA_DIR
 )
+cppdependencies_cli11(CLI11)
+cppdependencies_json_nlohmann(JSON)
+cppdependencies_pdfium(PDFIUM SHARED)
 
-#
-# Add project dependencies here.
-#
-# Examples:
-#
-#   - find_package(...)
-#   - FetchContent + cppcmake_dependency_make_available(...)
-#   - cppcmake_dependency_add_subdirectory(...)
-#   - cppcmake_dependency_add_subdirectory_unless_target(...)
-#
-# Optionally group dependency targets in the IDE using:
-#
-#   cppcmake_dependency_set_folder(...)
-#
+cppdependencies_opencv(OPENCV SHARED
+    COMPONENTS core imgproc imgcodecs
+    ZLIB_TARGET ${ZLIB}
+    PNG_TARGET ${PNG}
+    JPEG_TARGET ${JPEG}
+    TIFF_TARGET ${TIFF}
+)
 
 # =========================================================
 # Modules
 # =========================================================
 
-#
-# Register project modules here.
-#
-# Examples:
-#
-#   cppcmake_module_add(engine/core)
-#   cppcmake_module_add(engine/math)
-#
-#   cppcmake_module_add(apps/demo)
-#   cppcmake_module_add(apps/editor)
-#
+cppcmake_module_add(engine/ocr)
+cppcmake_module_add(engine/receipt)
+cppcmake_module_add(apps/pdf2csv)
